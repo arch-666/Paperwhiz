@@ -1,6 +1,7 @@
 // frontend/app/layout.tsx
 import "./globals.css";
 import Link from "next/link";
+import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
 
 export const metadata = {
   title: "PaperWhiz – Your AI Research Assistant",
