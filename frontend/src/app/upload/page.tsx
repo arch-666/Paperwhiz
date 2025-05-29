@@ -38,7 +38,8 @@ export default function UploadPage() {
       }
 
       const data = await res.json();
-      setStatus(`✅ Uploaded: ${data.filename}`);
+      setStatus(`✅ Uploaded: ${data.filename}\n\nSummary:\n${data.summary}`);
+
     } catch (err) {
       console.error("Upload error:", err);
       setStatus("❌ Upload failed");
