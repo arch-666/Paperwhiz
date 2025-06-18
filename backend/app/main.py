@@ -2,10 +2,11 @@ from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 from transformers.pipelines import pipeline
-import os
-import pdfplumber
-import docx
-
+from utils.file_utils import sanitize_filename
+from utils.file_utils import extract_text_from_file
+from utils.doc_loaders import load_document
+from utils.text_splitters import smart_splitter
+from tools.rag_tool import rag_tool
 app = FastAPI()
 
 app.add_middleware(
@@ -22,24 +23,6 @@ DATA_FOLDER.mkdir(parents=True, exist_ok=True)
 # Initialize summarizer pipeline
 summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
 
-def sanitize_filename(filename: str) -> str:
-    safe_name = os.path.basename(filename)
-    if not safe_name:
-        safe_name = "uploaded_file"
-    return safe_name
-
-def extract_text_from_file(file_path: Path) -> str:
-    ext = file_path.suffix.lower()
-    if ext == ".txt":
-        return file_path.read_text(encoding="utf-8", errors="ignore")
-    elif ext == ".pdf":
-        with pdfplumber.open(file_path) as pdf:
-            return "\n".join([page.extract_text() or "" for page in pdf.pages])
-    elif ext == ".docx":
-        doc = docx.Document(str(file_path))
-        return "\n".join([para.text for para in doc.paragraphs])
-    else:
-        return ""
 
 @app.post("/upload/")
 async def upload_file(file: UploadFile = File(...)):
@@ -57,18 +40,23 @@ async def upload_file(file: UploadFile = File(...)):
     
     # Summarize (limit to first 1000 tokens to fit model limits)
     text = text[:2000]  # simple truncation to avoid token limit errors
-    result = summarizer(text, max_length=130, min_length=30, do_sample=False)
-    if result is None:
-        return {"error": "Summarization failed."}
-    if isinstance(result, list):
-        result_list = result
-    else:
-        try:
-            result_list = list(result)
-        except TypeError:
-            return {"error": "Summarization failed."}
-    if not result_list or not isinstance(result_list[0], dict) or "summary_text" not in result_list[0]:
-        return {"error": "Summarization failed."}
-    summary = result_list[0]["summary_text"]
-    
+    # result = summarizer(text, max_length=130, min_length=30, do_sample=False)
+    # if result is None:
+    #     return {"error": "Summarization failed."}
+    # if isinstance(result, list):
+    #     result_list = result
+    # else:
+    #     try:
+    #         result_list = list(result)
+    #     except TypeError:
+    #         return {"error": "Summarization failed."}
+    # if not result_list or not isinstance(result_list[0], dict) or "summary_text" not in result_list[0]:
+    #     return {"error": "Summarization failed."}
+    # summary = result_list[0]["summary_text"]
+    # if not summary.strip():
+    #     return {"error": "Summary is empty."}
+    summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
+    result = rag_tool(save_path, filename)
+    if "error" in result:
+        return result
     return {"filename": filename, "summary": summary}
