@@ -7,6 +7,10 @@ from utils.file_utils import extract_text_from_file
 from utils.doc_loaders import load_document
 from utils.text_splitters import smart_splitter
 from tools.rag_tool import rag_tool
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+
+
 app = FastAPI()
 
 app.add_middleware(
@@ -37,26 +41,15 @@ async def upload_file(file: UploadFile = File(...)):
     text = extract_text_from_file(save_path)
     if not text.strip():
         return {"error": "Could not extract text from file."}
-    
-    # Summarize (limit to first 1000 tokens to fit model limits)
-    text = text[:2000]  # simple truncation to avoid token limit errors
-    # result = summarizer(text, max_length=130, min_length=30, do_sample=False)
-    # if result is None:
-    #     return {"error": "Summarization failed."}
-    # if isinstance(result, list):
-    #     result_list = result
-    # else:
-    #     try:
-    #         result_list = list(result)
-    #     except TypeError:
-    #         return {"error": "Summarization failed."}
-    # if not result_list or not isinstance(result_list[0], dict) or "summary_text" not in result_list[0]:
-    #     return {"error": "Summarization failed."}
-    # summary = result_list[0]["summary_text"]
-    # if not summary.strip():
-    #     return {"error": "Summary is empty."}
+    text = text[:2000]
+    if not text:
+        return {"error": "No text extracted from the file."}
     summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
-    result = rag_tool(save_path, filename)
+    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    result = rag_tool(save_path, filename,embeddings=embedding_model)['retriever']
     if "error" in result:
         return result
+    query = text[:100]
+    retrieved = result.invoke(query)
+    print(retrieved)
     return {"filename": filename, "summary": summary}
