@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = "Backend service with FastAPI, LangChain, and Postgres"
+authors = ["Your Name <you@example.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+# Core
+fastapi = "*"
+uvicorn = {extras = ["standard"], version = "*"}
+python-multipart = "*"
+pydantic = ">=1.10,<3.0"
+aiofiles = "*"
+
+# LangChain and LLMs
+langchain = "*"
+openai = "*"
+transformers = "*"
+huggingface-hub = "*"
+sentence-transformers = "*"
+
+# Vector Store
+faiss-cpu = "*"
+
+# RAG Utilities
+tiktoken = "*"
+beautifulsoup4 = "*"
+unstructured = {extras = ["all-docs"], version = "*"}
+pdfminer = "*"
+pypdf = "*"
+docx2txt = "*"
+html2text = "*"
+
+# Observability & Logging
+langsmith = "*"
+loguru = "*"
+
+# Dev and Utilities
+python-dotenv = "*"
+httpx = "*"
+rich = "*"
+
+# Database
+psycopg2-binary = "*"
+SQLAlchemy = "*"
+pdfplumber = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

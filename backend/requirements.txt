@@ -13,7 +13,7 @@ huggingface_hub
 sentence-transformers # Precompiled wheel available
 
 # Vector Store
-faiss-cpu==1.7.4  # Avoid latest, stable version with wheel
+faiss-cpu  # Avoid latest, stable version with wheel
 
 # RAG Utilities
 tiktoken
@@ -32,3 +32,7 @@ loguru
 python-dotenv
 httpx
 rich
+
+psycopg2-binary
+SQLAlchemy
+pdfplumber
