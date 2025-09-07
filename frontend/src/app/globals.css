@@ -1,26 +1,71 @@
 @import "tailwindcss";
 
+/* Define light theme defaults */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #6d28d9;   /* Indigo for accents */
+  --secondary: #9333ea; /* Purple for accents */
+  --accent: #db2777;    /* Pink for accents */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --primary: #818cf8;   /* Softer indigo */
+    --secondary: #c084fc; /* Softer purple */
+    --accent: #f472b6;    /* Softer pink */
   }
 }
 
+/* Apply global defaults */
+
+  /* src/app/globals.css */
 body {
-  background: var(--background);
+  background-image: url('/wp10491859.jpg'); /* ✅ no ./ needed */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+
+/* Custom Tailwind-like utilities */
+@layer utilities {
+  .bg-background {
+    background-color: var(--background);
+  }
+  .text-foreground {
+    color: var(--foreground);
+  }
+  .bg-primary {
+    background-color: var(--primary);
+  }
+  .text-primary {
+    color: var(--primary);
+  }
+  .bg-secondary {
+    background-color: var(--secondary);
+  }
+  .text-secondary {
+    color: var(--secondary);
+  }
+  .bg-accent {
+    background-color: var(--accent);
+  }
+  .text-accent {
+    color: var(--accent);
+  }
+}
+
+/* Navbar pill link style */
+.nav-link {
+  @apply px-4 py-2 rounded-full font-medium no-underline transition;
+  background-color: rgba(255, 255, 255, 0.1);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
