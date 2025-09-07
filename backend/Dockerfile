@@ -1,57 +1,50 @@
 # =========================
 # 1. Builder Stage
 # =========================
-FROM python:3.11-slim AS builder
+FROM python:3.11-slim-bookworm AS builder
 
-# Install system deps required for building Python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl build-essential libssl-dev libffi-dev git \
+    build-essential libssl-dev libffi-dev curl git \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry via official installer
+# Install Poetry via pipx or official installer
 RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.local/bin:$PATH"
-
-# Disable venvs inside Docker
-ENV POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_NO_INTERACTION=1
 
 WORKDIR /app
 
 # Copy only dependency files for caching
 COPY pyproject.toml poetry.lock* /app/
 
-# Install dependencies (system packages built here)
-RUN poetry install 
+# Create a virtualenv and install dependencies
+RUN python -m venv /venv
+ENV PATH="/venv/bin:$PATH"
 
-# Copy the rest of the backend code
+RUN poetry install --no-root --without dev
+
+
+# Copy application code
 COPY . /app
 
-
 # =========================
-# 2. Runtime Stage (final image)
+# 2. Runtime Stage
 # =========================
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
-# Install runtime-only deps (no compilers)
+# Install minimal runtime libraries
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl-dev libffi-dev \
+    libssl3 libffi8 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy Poetry from builder
-COPY --from=builder /root/.local /root/.local
-ENV PATH="/root/.local/bin:$PATH"
-
-# Copy installed packages and app from builder
+# Copy venv and app from builder
+COPY --from=builder /venv /venv
 COPY --from=builder /app /app
+
+ENV PATH="/venv/bin:$PATH"
 WORKDIR /app
 
-# Env for Poetry
-ENV POETRY_VIRTUALENVS_CREATE=false \
-    POETRY_NO_INTERACTION=1
-
-# Expose FastAPI port
 EXPOSE 8000
 
-# Start FastAPI
-CMD ["poetry", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Directly run uvicorn from venv
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
