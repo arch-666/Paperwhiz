@@ -23,7 +23,7 @@ pdfminer.six
 pypdf
 docx2txt
 html2text
-
+pdfplumber
 # Observability & Logging
 langsmith
 loguru
